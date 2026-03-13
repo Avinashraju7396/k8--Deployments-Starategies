@@ -1,0 +1,1736 @@
+*Deployments Starategies:-
+-------------------------
+
+1)Recreate Stategy-----           1 deploy 
+2)Rolling Strategy -----        1 deploy----(inrealtime 100%)
+3)Blue-Green Deployment Strategy-----        2 deploy 2 different lables---------------resources are more  user 100% impack old version delete new vwesion update that time users will 
+impack application downtime always this is droback 
+4)Canary Strategy-------        2 deploy 2 same lables ------------------>smowly ramp up and ramp down no users impack  ramp down no response no down time impack only 10%(realtime 100%use)
+
+----------------------------------------------------------------------------------------
+
+1)Recreate Strategy:-
+-----------------------
+*)✅ No version conflict – The old pods are completely deleted before new pods start, so only one version of the application runs at a time, avoiding compatibility issues
+
+Old Pods Running (v1)
+        ↓
+All Old Pods Deleted
+        ↓
+Application Temporarily Down
+        ↓
+New Pods Created (v2)
+        ↓
+Application Starts Again
+
+
+ExAMPLE:-
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deploy
+spec:
+  replicas: 3
+
+  strategy:
+    type: Recreate
+
+  selector:
+    matchLabels:
+      app: nginx
+
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.26
+---------------------------------------------------------------------------------
+
+
+2)rooling :-In Kubernetes, the Rolling Update Strategy is used to update an application without downtime. 🚀
+It gradually replaces old pods with new pods instead of stopping everything at once.
+
+2)In Kubernetes, the Rolling Update strategy provides zero downtime, meaning the application continues running while old pods are gradually replaced with new pods. 🚀
+
+Old Pods Running (v1)
+        ↓
+New Pod Created (v2)
+        ↓
+New Pod Becomes Ready
+        ↓
+One Old Pod Terminated
+        ↓
+Repeat Process
+        ↓
+All Pods Updated to New Version
+        ↓
+Application Always Available (No Downtime)
+
+✅ Advantage: The application keeps running during the update, so users do not experience downtime. 🚀
+------------------------------------------------------------------------------------------
+3)Blue-Green Deployment Strategy:-           100%user are impack      
+---------------------------------------
+
+Blue-Green deployment means running two identical environments at the same time.
+
+Blue environment → Current running version (production)
+
+Green environment → New version of the application
+
+When the new version is ready, traffic is switched from Blue to Green. 🚀
+
+Blue Environment (v1 running)
+        ↓
+Green Environment Created (v2)
+        ↓
+Testing Done on Green
+        ↓
+Switch Traffic to Green
+        ↓
+Green Becomes Production
+
+🔹 Key Advantage:-
+
+✅ Instant rollback – If the new version has issues, traffic can quickly switch back to the Blue environment.
+
+
+------------------------------------------------------------------------------
+
+4)Canary Strategy
+
+
+*)The Canary strategy releases a new version of the application to a small number of users first, while most users still use the old version.
+
+If the new version works well, it is gradually rolled out to all users. 🚀
+
+🔹 Advantage
+
+✅ Reduced risk – Only a small group of users test the new version first, so problems can be detected early.
+
+
+process:-
+-------------
+
+Authenticating with public key "Imported-Openssh-Key"
+    +----------------------------------------------------------------------+
+    ¦                 • MobaXterm Personal Edition v25.2 •                 ¦
+    ¦               (SSH client, X server and network tools)               ¦
+    ¦                                                                      ¦
+    ¦ ? SSH session to ec2-user@3.83.101.124                               ¦
+    ¦   • Direct SSH      :  ?                                             ¦
+    ¦   • SSH compression :  ?                                             ¦
+    ¦   • SSH-browser     :  ?                                             ¦
+    ¦   • X11-forwarding  :  ?  (disabled or not supported by server)      ¦
+    ¦                                                                      ¦
+    ¦ ? For more info, ctrl+click on help or visit our website.            ¦
+    +----------------------------------------------------------------------+
+
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
+   ~~       V~' '->
+    ~~~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+Last login: Fri Mar 13 05:26:20 2026 from 49.43.224.190
+[ec2-user@ip-172-31-91-244 ~]$ sudo su -
+[root@ip-172-31-91-244 ~]#  curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
+   chmod +x ./kubectl
+   mv ./kubectl /usr/local/bin
+   kubectl version --short --client
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 58875k 100 58875k   0     0 36072k     0   0:00:01  0:00:01 --:--:-- 36097k
+Client Version: v1.19.6-eks-49a6c0
+[root@ip-172-31-91-244 ~]# aws configure
+AWS Access Key ID [None]: AKIAQS2MGMAEJZMZND6H
+AWS Secret Access Key [None]: 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
+Default region name [None]: us-east-1
+Default output format [None]: [root@ip-172-31-91-244 ~]#
+[root@ip-172-31-91-244 ~]#
+[root@ip-172-31-91-244 ~]# curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+   sudo mv /tmp/eksctl /usr/local/bin
+   eksctl version
+0.224.0
+[root@ip-172-31-91-244 ~]# kubectl get nodes
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+[root@ip-172-31-91-244 ~]# aws eks update-kubeconfig --region us-east-1 --name cluster
+Added new context arn:aws:eks:us-east-1:040425119752:cluster/cluster to /root/.kube/config
+[root@ip-172-31-91-244 ~]# kubectl get nodes
+NAME                           STATUS   ROLES    AGE   VERSION
+ip-172-31-0-101.ec2.internal   Ready    <none>   74m   v1.35.2-eks-f69f56f
+ip-172-31-95-23.ec2.internal   Ready    <none>   74m   v1.35.2-eks-f69f56f
+[root@ip-172-31-91-244 ~]# yum install git -y
+Amazon Linux 2023 Kernel Livepatch repository                                                                               295 kB/s |  30 kB     00:00
+Dependencies resolved.
+============================================================================================================================================================
+ Package                                Architecture                 Version                                        Repository                         Size
+============================================================================================================================================================
+Installing:
+ git                                    x86_64                       2.50.1-1.amzn2023.0.1                          amazonlinux                        53 k
+Installing dependencies:
+ git-core                               x86_64                       2.50.1-1.amzn2023.0.1                          amazonlinux                       4.9 M
+ git-core-doc                           noarch                       2.50.1-1.amzn2023.0.1                          amazonlinux                       2.8 M
+ perl-Error                             noarch                       1:0.17029-5.amzn2023.0.2                       amazonlinux                        41 k
+ perl-File-Find                         noarch                       1.37-477.amzn2023.0.7                          amazonlinux                        25 k
+ perl-Git                               noarch                       2.50.1-1.amzn2023.0.1                          amazonlinux                        41 k
+ perl-TermReadKey                       x86_64                       2.38-9.amzn2023.0.2                            amazonlinux                        36 k
+ perl-lib                               x86_64                       0.65-477.amzn2023.0.7                          amazonlinux                        15 k
+
+Transaction Summary
+============================================================================================================================================================
+Install  8 Packages
+
+Total download size: 7.9 M
+Installed size: 41 M
+Downloading Packages:
+(1/8): git-2.50.1-1.amzn2023.0.1.x86_64.rpm                                                                                 1.5 MB/s |  53 kB     00:00
+(2/8): git-core-doc-2.50.1-1.amzn2023.0.1.noarch.rpm                                                                         47 MB/s | 2.8 MB     00:00
+(3/8): perl-Error-0.17029-5.amzn2023.0.2.noarch.rpm                                                                         1.4 MB/s |  41 kB     00:00
+(4/8): git-core-2.50.1-1.amzn2023.0.1.x86_64.rpm                                                                             63 MB/s | 4.9 MB     00:00
+(5/8): perl-File-Find-1.37-477.amzn2023.0.7.noarch.rpm                                                                      1.1 MB/s |  25 kB     00:00
+(6/8): perl-Git-2.50.1-1.amzn2023.0.1.noarch.rpm                                                                            1.7 MB/s |  41 kB     00:00
+(7/8): perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64.rpm                                                                      1.4 MB/s |  36 kB     00:00
+(8/8): perl-lib-0.65-477.amzn2023.0.7.x86_64.rpm                                                                            579 kB/s |  15 kB     00:00
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                        55 MB/s | 7.9 MB     00:00
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                                                                                                    1/1
+  Installing       : git-core-2.50.1-1.amzn2023.0.1.x86_64                                                                                              1/8
+  Installing       : git-core-doc-2.50.1-1.amzn2023.0.1.noarch                                                                                          2/8
+  Installing       : perl-lib-0.65-477.amzn2023.0.7.x86_64                                                                                              3/8
+  Installing       : perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64                                                                                        4/8
+  Installing       : perl-File-Find-1.37-477.amzn2023.0.7.noarch                                                                                        5/8
+  Installing       : perl-Error-1:0.17029-5.amzn2023.0.2.noarch                                                                                         6/8
+  Installing       : perl-Git-2.50.1-1.amzn2023.0.1.noarch                                                                                              7/8
+  Installing       : git-2.50.1-1.amzn2023.0.1.x86_64                                                                                                   8/8
+  Running scriptlet: git-2.50.1-1.amzn2023.0.1.x86_64                                                                                                   8/8
+  Verifying        : git-2.50.1-1.amzn2023.0.1.x86_64                                                                                                   1/8
+  Verifying        : git-core-2.50.1-1.amzn2023.0.1.x86_64                                                                                              2/8
+  Verifying        : git-core-doc-2.50.1-1.amzn2023.0.1.noarch                                                                                          3/8
+  Verifying        : perl-Error-1:0.17029-5.amzn2023.0.2.noarch                                                                                         4/8
+  Verifying        : perl-File-Find-1.37-477.amzn2023.0.7.noarch                                                                                        5/8
+  Verifying        : perl-Git-2.50.1-1.amzn2023.0.1.noarch                                                                                              6/8
+  Verifying        : perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64                                                                                        7/8
+  Verifying        : perl-lib-0.65-477.amzn2023.0.7.x86_64                                                                                              8/8
+
+Installed:
+  git-2.50.1-1.amzn2023.0.1.x86_64                    git-core-2.50.1-1.amzn2023.0.1.x86_64               git-core-doc-2.50.1-1.amzn2023.0.1.noarch
+  perl-Error-1:0.17029-5.amzn2023.0.2.noarch          perl-File-Find-1.37-477.amzn2023.0.7.noarch         perl-Git-2.50.1-1.amzn2023.0.1.noarch
+  perl-TermReadKey-2.38-9.amzn2023.0.2.x86_64         perl-lib-0.65-477.amzn2023.0.7.x86_64
+
+Complete!
+[root@ip-172-31-91-244 ~]# git clone https://github.com/Avinashraju7396/Kubernetes-main.git
+Cloning into 'Kubernetes-main'...
+Username for 'https://github.com': avinashraju7396
+Password for 'https://avinashraju7396@github.com':
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/Avinashraju7396/Kubernetes-main.git/'
+[root@ip-172-31-91-244 ~]# git clone https://github.com/Avinashraju7396/Kubernetes-main.git
+Cloning into 'Kubernetes-main'...
+Username for 'https://github.com': siddapu
+Password for 'https://siddapu@github.com':
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/Avinashraju7396/Kubernetes-main.git/'
+[root@ip-172-31-91-244 ~]# ^C
+[root@ip-172-31-91-244 ~]# git clone https://github.com/Avinashraju7396/Kubernetes-main.git
+Cloning into 'Kubernetes-main'...
+Username for 'https://github.com': siddapu
+Password for 'https://siddapu@github.com':
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/Avinashraju7396/Kubernetes-main.git/'
+[root@ip-172-31-91-244 ~]# git clone https://github.com/Avinashraju7396/Kubernetes-main.git
+Cloning into 'Kubernetes-main'...
+Username for 'https://github.com': siddapu
+Password for 'https://siddapu@github.com':
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/Avinashraju7396/Kubernetes-main.git/'
+[root@ip-172-31-91-244 ~]# git clone git@github.com:Avinashraju7396/Kubernetes-main.git
+Cloning into 'Kubernetes-main'...
+The authenticity of host 'github.com (140.82.113.4)' can't be established.
+ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'github.com' (ED25519) to the list of known hosts.
+git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+[root@ip-172-31-91-244 ~]# git clone git@github.com:Avinashraju7396/Kubernetes-main.git
+Cloning into 'Kubernetes-main'...
+git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+[root@ip-172-31-91-244 ~]# git clone https://github.com/Avinashraju7396/GCP-Terraform.git
+Cloning into 'GCP-Terraform'...
+remote: Enumerating objects: 22, done.
+remote: Counting objects: 100% (22/22), done.
+remote: Compressing objects: 100% (13/13), done.
+remote: Total 22 (delta 0), reused 22 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (22/22), 22.76 MiB | 32.64 MiB/s, done.
+[root@ip-172-31-91-244 ~]# ls
+GCP-Terraform
+[root@ip-172-31-91-244 ~]# git clone https://github.com/Avinashraju7396/Kubernetes-main.git
+Cloning into 'Kubernetes-main'...
+remote: Enumerating objects: 441, done.
+remote: Counting objects: 100% (441/441), done.
+remote: Compressing objects: 100% (222/222), done.
+remote: Total 441 (delta 203), reused 441 (delta 203), pack-reused 0 (from 0)
+Receiving objects: 100% (441/441), 126.52 KiB | 31.63 MiB/s, done.
+Resolving deltas: 100% (203/203), done.
+[root@ip-172-31-91-244 ~]# rm -rf GCP-Terraform/
+[root@ip-172-31-91-244 ~]# ls
+Kubernetes-main
+[root@ip-172-31-91-244 ~]# cd Kubernetes-main/
+[root@ip-172-31-91-244 Kubernetes-main]# ls
+day-1-installation         day-15-config-secrets        day-4-horizonatl-scaling   day-7-deployment-updates-recreate-rolling-bluegree-canary
+day-10-volumes             day-15-probes                day-4-namesapce            day-8-schedules
+day-12-argocd              day-18-pythonflask           day-5-ingress              day-9-helm
+day-13-statefull-headless  day-2-workernode-components  day-6-privateimage-deploy  daya-11-monitoring
+day-14-rback               day-3-service                day-7-Cluster-autoscaleer
+[root@ip-172-31-91-244 Kubernetes-main]#
+Network error: Connection reset by peer
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Session stopped
+    - Press <Return> to exit tab
+    - Press R to restart session
+    - Press S to save terminal output to file
+Authenticating with public key "Imported-Openssh-Key"
+    +----------------------------------------------------------------------+
+    ¦                 • MobaXterm Personal Edition v25.2 •                 ¦
+    ¦               (SSH client, X server and network tools)               ¦
+    ¦                                                                      ¦
+    ¦ ? SSH session to ec2-user@3.83.101.124                               ¦
+    ¦   • Direct SSH      :  ?                                             ¦
+    ¦   • SSH compression :  ?                                             ¦
+    ¦   • SSH-browser     :  ?                                             ¦
+    ¦   • X11-forwarding  :  ?  (disabled or not supported by server)      ¦
+    ¦                                                                      ¦
+    ¦ ? For more info, ctrl+click on help or visit our website.            ¦
+    +----------------------------------------------------------------------+
+
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
+   ~~       V~' '->
+    ~~~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+Last login: Fri Mar 13 06:20:16 2026 from 49.43.224.190
+[ec2-user@ip-172-31-91-244 ~]$ sudo su -
+Last login: Fri Mar 13 06:20:23 UTC 2026 on pts/1
+[root@ip-172-31-91-244 ~]# ls
+Kubernetes-main
+[root@ip-172-31-91-244 ~]# cd Kubernetes-main/
+[root@ip-172-31-91-244 Kubernetes-main]# ls
+day-1-installation         day-15-config-secrets        day-4-horizonatl-scaling   day-7-deployment-updates-recreate-rolling-bluegree-canary
+day-10-volumes             day-15-probes                day-4-namesapce            day-8-schedules
+day-12-argocd              day-18-pythonflask           day-5-ingress              day-9-helm
+day-13-statefull-headless  day-2-workernode-components  day-6-privateimage-deploy  daya-11-monitoring
+day-14-rback               day-3-service                day-7-Cluster-autoscaleer
+[root@ip-172-31-91-244 Kubernetes-main]# cd day-7-
+day-7-Cluster-autoscaleer/                                 day-7-deployment-updates-recreate-rolling-bluegree-canary/
+[root@ip-172-31-91-244 Kubernetes-main]# cd day-7-deployment-updates-recreate-rolling-bluegree-canary/
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# ls
+bluegreen  canary  recreate  rolling
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get pods
+No resources found in default namespace.
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl apply -f recreate.yml
+error: the path "recreate.yml" does not exist
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl apply -f recreate
+deployment.apps/myapp created
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get podes
+error: the server doesn't have a resource type "podes"
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+myapp-75cd6cbdff-4lqdk   1/1     Running   0          16s
+myapp-75cd6cbdff-k7lg4   1/1     Running   0          16s
+myapp-75cd6cbdff-m5kkp   1/1     Running   0          16s
+myapp-75cd6cbdff-ptvgm   1/1     Running   0          16s
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# vi recreate
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl describe pods myapp-75cd6cbdff-4lqdk
+Name:         myapp-75cd6cbdff-4lqdk
+Namespace:    default
+Priority:     0
+Node:         ip-172-31-0-101.ec2.internal/172.31.0.101
+Start Time:   Fri, 13 Mar 2026 06:59:52 +0000
+Labels:       app=myapp
+              pod-template-hash=75cd6cbdff
+              topology.kubernetes.io/region=us-east-1
+              topology.kubernetes.io/zone=us-east-1a
+Annotations:  <none>
+Status:       Running
+IP:           172.31.13.240
+IPs:
+  IP:           172.31.13.240
+Controlled By:  ReplicaSet/myapp-75cd6cbdff
+Containers:
+  myapp:
+    Container ID:   containerd://bea3894fd48e5abe3479771f454ffcabfa9dadeb1a63a713bc94f2cd84dc1a31
+    Image:          nginx:1.25.3
+    Image ID:       docker.io/library/nginx@sha256:c7a6ad68be85142c7fe1089e48faa1e7c7166a194caa9180ddea66345876b9d2
+    Port:           8181/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 13 Mar 2026 06:59:54 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-9gwht (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-9gwht:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  2m15s  default-scheduler  Successfully assigned default/myapp-75cd6cbdff-4lqdk to ip-172-31-0-101.ec2.internal
+  Normal  Pulling    2m14s  kubelet            Pulling image "nginx:1.25.3"
+  Normal  Pulled     2m13s  kubelet            Successfully pulled image "nginx:1.25.3" in 1.665s (1.666s including waiting). Image size: 70521718 bytes.
+  Normal  Created    2m13s  kubelet            Container created
+  Normal  Started    2m13s  kubelet            Container started
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# check image nginx:1.
+-bash: check: command not found
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# cat >>recreate.yml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  replicas: 4
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: nginx # recreate dployment after chnaging the version
+          ports:
+            - name: http
+              containerPort: 8181
+
+^C
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl apply -f recreate.yml
+deployment.apps/myapp configured
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get pods
+NAME                    READY   STATUS    RESTARTS   AGE
+myapp-f7d5b6964-2xhhv   1/1     Running   0          9s
+myapp-f7d5b6964-msz2f   1/1     Running   0          9s
+myapp-f7d5b6964-nd9xh   1/1     Running   0          9s
+myapp-f7d5b6964-rd98f   1/1     Running   0          9s
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl describe pods myapp-f7d5b6964-2xhhv
+Name:         myapp-f7d5b6964-2xhhv
+Namespace:    default
+Priority:     0
+Node:         ip-172-31-95-23.ec2.internal/172.31.95.23
+Start Time:   Fri, 13 Mar 2026 07:04:45 +0000
+Labels:       app=myapp
+              pod-template-hash=f7d5b6964
+              topology.kubernetes.io/region=us-east-1
+              topology.kubernetes.io/zone=us-east-1b
+Annotations:  <none>
+Status:       Running
+IP:           172.31.80.82
+IPs:
+  IP:           172.31.80.82
+Controlled By:  ReplicaSet/myapp-f7d5b6964
+Containers:
+  myapp:
+    Container ID:   containerd://2313f9449b557c0bd5627664f31170357418da1d3299167e405cfa57e1abd5de
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:bc45d248c4e1d1709321de61566eb2b64d4f0e32765239d66573666be7f13349
+    Port:           8181/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 13 Mar 2026 07:04:47 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-8m6xg (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-8m6xg:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  39s   default-scheduler  Successfully assigned default/myapp-f7d5b6964-2xhhv to ip-172-31-95-23.ec2.internal
+  Normal  Pulling    39s   kubelet            Pulling image "nginx"
+  Normal  Pulled     37s   kubelet            Successfully pulled image "nginx" in 1.755s (1.755s including waiting). Image size: 62960551 bytes.
+  Normal  Created    37s   kubelet            Container created
+  Normal  Started    37s   kubelet            Container started
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get deploy
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+myapp   4/4     4            4           6m17s
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl describe myapp
+error: the server doesn't have a resource type "myapp"
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl describe deploy myapp
+Name:               myapp
+Namespace:          default
+CreationTimestamp:  Fri, 13 Mar 2026 06:59:52 +0000
+Labels:             <none>
+Annotations:        deployment.kubernetes.io/revision: 2
+Selector:           app=myapp
+Replicas:           4 desired | 4 updated | 4 total | 4 available | 0 unavailable
+StrategyType:       Recreate
+MinReadySeconds:    0
+Pod Template:
+  Labels:  app=myapp
+  Containers:
+   myapp:
+    Image:        nginx
+    Port:         8181/TCP
+    Host Port:    0/TCP
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   myapp-f7d5b6964 (4/4 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  6m48s  deployment-controller  Scaled up replica set myapp-75cd6cbdff from 0 to 4
+  Normal  ScalingReplicaSet  115s   deployment-controller  Scaled down replica set myapp-75cd6cbdff from 4 to 0
+  Normal  ScalingReplicaSet  115s   deployment-controller  Scaled up replica set myapp-f7d5b6964 from 0 to 4
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl delete -f recreate.yml
+deployment.apps "myapp" deleted
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get pods
+No resources found in default namespace.
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# cat >>deploy.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: httpd
+        ports:
+        - containerPort: 80
+^C
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# ls
+bluegreen  canary  deploy.yml  recreate  recreate.yml  rolling
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl apply -f delpoy.yml
+error: the path "delpoy.yml" does not exist
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl apply -f deploy.yml
+deployment.apps/nginx-deployment created
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-6c744c5f74-9tdvb   1/1     Running   0          10s
+nginx-deployment-6c744c5f74-gts2d   1/1     Running   0          10s
+nginx-deployment-6c744c5f74-kwvcq   1/1     Running   0          10s
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   3/3     3            3           54s
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl describe deploy nginx-deployment
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Fri, 13 Mar 2026 07:13:58 +0000
+Labels:                 app=nginx
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=nginx
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx
+  Containers:
+   nginx:
+    Image:        httpd
+    Port:         80/TCP
+    Host Port:    0/TCP
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-6c744c5f74 (3/3 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  78s   deployment-controller  Scaled up replica set nginx-deployment-6c744c5f74 from 0 to 3
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl delete -f .
+deployment.apps "nginx-deployment" deleted
+Error from server (NotFound): error when deleting "recreate.yml": deployments.apps "myapp" not found
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get pods
+No resources found in default namespace.
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get podes
+error: the server doesn't have a resource type "podes"
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# kubectl get pod
+No resources found in default namespace.
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# ls
+bluegreen  canary  deploy.yml  recreate  recreate.yml  rolling
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# cd rolling/
+[root@ip-172-31-91-244 rolling]# ls
+rolling.yaml
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 50%
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: 483216680875.dkr.ecr.ap-south-1.amazonaws.com/hotstar:latest #apply rollback deployment after changing the version
+          ports:
+            - name: http
+              containerPort: 8181
+
+^C
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+No resources found in default namespace.
+[root@ip-172-31-91-244 rolling]# kubectl get pod
+No resources found in default namespace.
+[root@ip-172-31-91-244 rolling]# kubectl apply -f rolling.yml
+deployment.apps/myapp created
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                     READY   STATUS         RESTARTS   AGE
+myapp-544964d455-5hcsz   0/1     ErrImagePull   0          7s
+myapp-544964d455-bnzjq   0/1     ErrImagePull   0          7s
+myapp-544964d455-dz6nw   0/1     ErrImagePull   0          7s
+myapp-544964d455-f4kch   0/1     ErrImagePull   0          7s
+myapp-544964d455-frm5z   0/1     ErrImagePull   0          7s
+myapp-544964d455-gbn6b   0/1     ErrImagePull   0          7s
+myapp-544964d455-ndzjn   0/1     ErrImagePull   0          7s
+myapp-544964d455-p44mq   0/1     ErrImagePull   0          7s
+myapp-544964d455-vxwhr   0/1     ErrImagePull   0          7s
+myapp-544964d455-wpwbz   0/1     ErrImagePull   0          7s
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 50%
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: 483216680875.dkr.ecr.ap-south-1.amazonaws.com/hotstar:latest #apply rollback deployment after changing the version
+          ports:
+            - name: http
+              containerPort: 8181
+
+^C
+[root@ip-172-31-91-244 rolling]# kubectl apply -f rolling.yml
+deployment.apps/myapp unchanged
+deployment.apps/myapp unchanged
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                     READY   STATUS             RESTARTS   AGE
+myapp-544964d455-5hcsz   0/1     ImagePullBackOff   0          2m2s
+myapp-544964d455-bnzjq   0/1     ImagePullBackOff   0          2m2s
+myapp-544964d455-dz6nw   0/1     ImagePullBackOff   0          2m2s
+myapp-544964d455-f4kch   0/1     ImagePullBackOff   0          2m2s
+myapp-544964d455-frm5z   0/1     ImagePullBackOff   0          2m2s
+myapp-544964d455-gbn6b   0/1     ErrImagePull       0          2m2s
+myapp-544964d455-ndzjn   0/1     ImagePullBackOff   0          2m2s
+myapp-544964d455-p44mq   0/1     ImagePullBackOff   0          2m2s
+myapp-544964d455-vxwhr   0/1     ImagePullBackOff   0          2m2s
+myapp-544964d455-wpwbz   0/1     ImagePullBackOff   0          2m2s
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                     READY   STATUS             RESTARTS   AGE
+myapp-544964d455-5hcsz   0/1     ImagePullBackOff   0          2m28s
+myapp-544964d455-bnzjq   0/1     ImagePullBackOff   0          2m28s
+myapp-544964d455-dz6nw   0/1     ImagePullBackOff   0          2m28s
+myapp-544964d455-f4kch   0/1     ImagePullBackOff   0          2m28s
+myapp-544964d455-frm5z   0/1     ImagePullBackOff   0          2m28s
+myapp-544964d455-gbn6b   0/1     ImagePullBackOff   0          2m28s
+myapp-544964d455-ndzjn   0/1     ImagePullBackOff   0          2m28s
+myapp-544964d455-p44mq   0/1     ImagePullBackOff   0          2m28s
+myapp-544964d455-vxwhr   0/1     ImagePullBackOff   0          2m28s
+myapp-544964d455-wpwbz   0/1     ImagePullBackOff   0          2m28s
+[root@ip-172-31-91-244 rolling]# ls
+rolling.yaml  rolling.yml
+[root@ip-172-31-91-244 rolling]# rm -rf rolling.yaml
+[root@ip-172-31-91-244 rolling]# rm -rf rolling.yml
+[root@ip-172-31-91-244 rolling]# ls
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 50%
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: nginx
+          ports:
+            - name: http
+              containerPort: 8181
+
+^C
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                     READY   STATUS             RESTARTS   AGE
+myapp-544964d455-5hcsz   0/1     ImagePullBackOff   0          3m36s
+myapp-544964d455-bnzjq   0/1     ImagePullBackOff   0          3m36s
+myapp-544964d455-dz6nw   0/1     ImagePullBackOff   0          3m36s
+myapp-544964d455-f4kch   0/1     ImagePullBackOff   0          3m36s
+myapp-544964d455-frm5z   0/1     ImagePullBackOff   0          3m36s
+myapp-544964d455-gbn6b   0/1     ImagePullBackOff   0          3m36s
+myapp-544964d455-ndzjn   0/1     ImagePullBackOff   0          3m36s
+myapp-544964d455-p44mq   0/1     ImagePullBackOff   0          3m36s
+myapp-544964d455-vxwhr   0/1     ImagePullBackOff   0          3m36s
+myapp-544964d455-wpwbz   0/1     ImagePullBackOff   0          3m36s
+[root@ip-172-31-91-244 rolling]# ls
+rolling.yml
+[root@ip-172-31-91-244 rolling]# rm -rf rolling.yml
+[root@ip-172-31-91-244 rolling]# ls
+[root@ip-172-31-91-244 rolling]# cat rolling.yml
+cat: rolling.yml: No such file or directory
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 50%
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: nginx
+          ports:
+            - name: http
+              containerPort: 8181
+^C
+[root@ip-172-31-91-244 rolling]# kubectl apply -f rolling.yml
+deployment.apps/myapp configured
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+myapp-6d4c4477c8-28nh6   1/1     Running   0          8s
+myapp-6d4c4477c8-4mv89   1/1     Running   0          8s
+myapp-6d4c4477c8-6hbw7   1/1     Running   0          8s
+myapp-6d4c4477c8-7qx2v   1/1     Running   0          8s
+myapp-6d4c4477c8-7xt48   1/1     Running   0          8s
+myapp-6d4c4477c8-d86sc   1/1     Running   0          8s
+myapp-6d4c4477c8-fr6r2   1/1     Running   0          8s
+myapp-6d4c4477c8-l9pbj   1/1     Running   0          8s
+myapp-6d4c4477c8-rx2wc   1/1     Running   0          8s
+myapp-6d4c4477c8-tqt8r   1/1     Running   0          8s
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 50%
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: httpd
+          ports:
+            - name: http
+              containerPort: 8181
+
+^[[A^[[A^[[A^[[A^[[A^[[A^[[A^[[A^[[A^[[A^[[A^[[A^C
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 50%
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: httpd
+          ports:
+            - name: http
+              containerPort: 8181
+
+^C
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+myapp-6d4c4477c8-28nh6   1/1     Running   0          2m44s
+myapp-6d4c4477c8-4mv89   1/1     Running   0          2m44s
+myapp-6d4c4477c8-6hbw7   1/1     Running   0          2m44s
+myapp-6d4c4477c8-7qx2v   1/1     Running   0          2m44s
+myapp-6d4c4477c8-7xt48   1/1     Running   0          2m44s
+myapp-6d4c4477c8-d86sc   1/1     Running   0          2m44s
+myapp-6d4c4477c8-fr6r2   1/1     Running   0          2m44s
+myapp-6d4c4477c8-l9pbj   1/1     Running   0          2m44s
+myapp-6d4c4477c8-rx2wc   1/1     Running   0          2m44s
+myapp-6d4c4477c8-tqt8r   1/1     Running   0          2m44s
+[root@ip-172-31-91-244 rolling]# kubectl apply -f rolling.yml
+deployment.apps/myapp unchanged
+deployment.apps/myapp configured
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                   READY   STATUS    RESTARTS   AGE
+myapp-9877768b-6ccxj   1/1     Running   0          10s
+myapp-9877768b-88v5j   1/1     Running   0          9s
+myapp-9877768b-bh6r2   1/1     Running   0          9s
+myapp-9877768b-c6xhh   1/1     Running   0          10s
+myapp-9877768b-dw9kg   1/1     Running   0          10s
+myapp-9877768b-hwqm5   1/1     Running   0          10s
+myapp-9877768b-j9qn5   1/1     Running   0          10s
+myapp-9877768b-k2tbz   1/1     Running   0          10s
+myapp-9877768b-qtz2b   1/1     Running   0          9s
+myapp-9877768b-zh54b   1/1     Running   0          10s
+[root@ip-172-31-91-244 rolling]# kubectl describr pod myapp-9877768b-6ccxj
+Error: unknown command "describr" for "kubectl"
+
+Did you mean this?
+        describe
+
+Run 'kubectl --help' for usage.
+[root@ip-172-31-91-244 rolling]# kubectl describr pods myapp-9877768b-6ccxj
+Error: unknown command "describr" for "kubectl"
+
+Did you mean this?
+        describe
+
+Run 'kubectl --help' for usage.
+[root@ip-172-31-91-244 rolling]# kubectl describe pod myapp-9877768b-6ccxj
+Name:         myapp-9877768b-6ccxj
+Namespace:    default
+Priority:     0
+Node:         ip-172-31-0-101.ec2.internal/172.31.0.101
+Start Time:   Fri, 13 Mar 2026 07:28:39 +0000
+Labels:       app=myapp
+              pod-template-hash=9877768b
+              topology.kubernetes.io/region=us-east-1
+              topology.kubernetes.io/zone=us-east-1a
+Annotations:  <none>
+Status:       Running
+IP:           172.31.14.208
+IPs:
+  IP:           172.31.14.208
+Controlled By:  ReplicaSet/myapp-9877768b
+Containers:
+  myapp:
+    Container ID:   containerd://97372bd2b58e858032f34482bef4070e83e34ec118b6b61b7e2876ddaeb9fe73
+    Image:          httpd
+    Image ID:       docker.io/library/httpd@sha256:96b1e8f69ee3adde956e819f7a7c3e706edef7ad88a26a491734015e5c595333
+    Port:           8181/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 13 Mar 2026 07:28:40 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-cfhdg (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-cfhdg:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  119s  default-scheduler  Successfully assigned default/myapp-9877768b-6ccxj to ip-172-31-0-101.ec2.internal
+  Normal  Pulling    118s  kubelet            Pulling image "httpd"
+  Normal  Pulled     118s  kubelet            Successfully pulled image "httpd" in 185ms (185ms including waiting). Image size: 45242947 bytes.
+  Normal  Created    118s  kubelet            Container created
+  Normal  Started    118s  kubelet            Container started
+[root@ip-172-31-91-244 rolling]# check image name updated
+-bash: check: command not found
+[root@ip-172-31-91-244 rolling]# again ching image nginx
+-bash: again: command not found
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 50%
+  replicas: 10
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: nginx
+          ports:
+            - name: http
+              containerPort: 8181
+
+^C
+[root@ip-172-31-91-244 rolling]# kubectl apply -f rolling.yml
+deployment.apps/myapp configured
+deployment.apps/myapp unchanged
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+myapp-6d4c4477c8-28gzn   1/1     Running   0          8s
+myapp-6d4c4477c8-6kq9s   1/1     Running   0          8s
+myapp-6d4c4477c8-8p7dk   1/1     Running   0          8s
+myapp-6d4c4477c8-d5j7r   1/1     Running   0          8s
+myapp-6d4c4477c8-gxccr   1/1     Running   0          8s
+myapp-6d4c4477c8-kfpwf   1/1     Running   0          8s
+myapp-6d4c4477c8-kknst   1/1     Running   0          8s
+myapp-6d4c4477c8-qrqsh   1/1     Running   0          8s
+myapp-6d4c4477c8-r49hc   1/1     Running   0          8s
+myapp-6d4c4477c8-xrrdb   1/1     Running   0          8s
+[root@ip-172-31-91-244 rolling]# kubectl delete -f .
+deployment.apps "myapp" deleted
+Error from server (NotFound): error when deleting "rolling.yml": deployments.apps "myapp" not found
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+No resources found in default namespace.
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  replicas: 15
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: nginx
+          ports:
+            - name: http
+              containerPort: 8181
+
+^C
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+No resources found in default namespace.
+[root@ip-172-31-91-244 rolling]# kubectl apply -f rolling.yml
+deployment.apps/myapp created
+deployment.apps/myapp configured
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+myapp-6d4c4477c8-567nf   1/1     Running   0          8s
+myapp-6d4c4477c8-5vdnt   1/1     Running   0          8s
+myapp-6d4c4477c8-b4jrs   1/1     Running   0          8s
+myapp-6d4c4477c8-bkkf7   1/1     Running   0          7s
+myapp-6d4c4477c8-dcjb9   1/1     Running   0          8s
+myapp-6d4c4477c8-dfd44   1/1     Running   0          8s
+myapp-6d4c4477c8-dsncm   1/1     Running   0          8s
+myapp-6d4c4477c8-gd7l7   1/1     Running   0          8s
+myapp-6d4c4477c8-j8vnn   1/1     Running   0          7s
+myapp-6d4c4477c8-l8vv9   1/1     Running   0          7s
+myapp-6d4c4477c8-qwwv4   1/1     Running   0          7s
+myapp-6d4c4477c8-rc85w   1/1     Running   0          8s
+myapp-6d4c4477c8-tprrd   1/1     Running   0          7s
+myapp-6d4c4477c8-vhlbb   1/1     Running   0          8s
+myapp-6d4c4477c8-wr9v8   1/1     Running   0          8s
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  replicas: 15
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: httpd
+          ports:
+            - name: http
+              containerPort: 8181
+
+^C
+[root@ip-172-31-91-244 rolling]# kubectl apply -f rolling.yml
+deployment.apps/myapp configured
+deployment.apps/myapp configured
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                     READY   STATUS              RESTARTS   AGE
+myapp-6d4c4477c8-78sjv   1/1     Terminating         0          7s
+myapp-9877768b-2xbvn     1/1     Running             0          4s
+myapp-9877768b-4lvhq     1/1     Running             0          7s
+myapp-9877768b-5z6ln     1/1     Running             0          7s
+myapp-9877768b-8f4wv     1/1     Running             0          7s
+myapp-9877768b-9hkgh     1/1     Running             0          7s
+myapp-9877768b-cm2s5     1/1     Running             0          4s
+myapp-9877768b-kw8h7     1/1     Running             0          4s
+myapp-9877768b-mjqfs     1/1     Running             0          7s
+myapp-9877768b-mwjhr     1/1     Running             0          5s
+myapp-9877768b-q57zq     0/1     ContainerCreating   0          4s
+myapp-9877768b-rg462     1/1     Running             0          7s
+myapp-9877768b-rktck     1/1     Running             0          6s
+myapp-9877768b-wjlfs     1/1     Running             0          7s
+myapp-9877768b-x9lzb     1/1     Running             0          5s
+myapp-9877768b-zgmjz     0/1     ContainerCreating   0          3s
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                   READY   STATUS    RESTARTS   AGE
+myapp-9877768b-2xbvn   1/1     Running   0          4m1s
+myapp-9877768b-4lvhq   1/1     Running   0          4m4s
+myapp-9877768b-5z6ln   1/1     Running   0          4m4s
+myapp-9877768b-8f4wv   1/1     Running   0          4m4s
+myapp-9877768b-9hkgh   1/1     Running   0          4m4s
+myapp-9877768b-cm2s5   1/1     Running   0          4m1s
+myapp-9877768b-kw8h7   1/1     Running   0          4m1s
+myapp-9877768b-mjqfs   1/1     Running   0          4m4s
+myapp-9877768b-mwjhr   1/1     Running   0          4m2s
+myapp-9877768b-q57zq   1/1     Running   0          4m1s
+myapp-9877768b-rg462   1/1     Running   0          4m4s
+myapp-9877768b-rktck   1/1     Running   0          4m3s
+myapp-9877768b-wjlfs   1/1     Running   0          4m4s
+myapp-9877768b-x9lzb   1/1     Running   0          4m2s
+myapp-9877768b-zgmjz   1/1     Running   0          4m
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 60%
+      maxSurge: 60%
+  replicas: 15
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: httpd
+          ports:
+            - name: http
+              containerPort: 8181
+
+^C
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                   READY   STATUS    RESTARTS   AGE
+myapp-9877768b-2xbvn   1/1     Running   0          5m25s
+myapp-9877768b-4lvhq   1/1     Running   0          5m28s
+myapp-9877768b-5z6ln   1/1     Running   0          5m28s
+myapp-9877768b-8f4wv   1/1     Running   0          5m28s
+myapp-9877768b-9hkgh   1/1     Running   0          5m28s
+myapp-9877768b-cm2s5   1/1     Running   0          5m25s
+myapp-9877768b-kw8h7   1/1     Running   0          5m25s
+myapp-9877768b-mjqfs   1/1     Running   0          5m28s
+myapp-9877768b-mwjhr   1/1     Running   0          5m26s
+myapp-9877768b-q57zq   1/1     Running   0          5m25s
+myapp-9877768b-rg462   1/1     Running   0          5m28s
+myapp-9877768b-rktck   1/1     Running   0          5m27s
+myapp-9877768b-wjlfs   1/1     Running   0          5m28s
+myapp-9877768b-x9lzb   1/1     Running   0          5m26s
+myapp-9877768b-zgmjz   1/1     Running   0          5m24s
+[root@ip-172-31-91-244 rolling]# kubectl describe pods myapp-9877768b-9hkgh
+Name:         myapp-9877768b-9hkgh
+Namespace:    default
+Priority:     0
+Node:         ip-172-31-0-101.ec2.internal/172.31.0.101
+Start Time:   Fri, 13 Mar 2026 07:37:47 +0000
+Labels:       app=myapp
+              pod-template-hash=9877768b
+              topology.kubernetes.io/region=us-east-1
+              topology.kubernetes.io/zone=us-east-1a
+Annotations:  <none>
+Status:       Running
+IP:           172.31.15.146
+IPs:
+  IP:           172.31.15.146
+Controlled By:  ReplicaSet/myapp-9877768b
+Containers:
+  myapp:
+    Container ID:   containerd://10ad5181433f1cd3ccf11f76f4dfcbd58d50e0ac51e2e606ce24b35091b1fbcb
+    Image:          httpd
+    Image ID:       docker.io/library/httpd@sha256:96b1e8f69ee3adde956e819f7a7c3e706edef7ad88a26a491734015e5c595333
+    Port:           8181/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 13 Mar 2026 07:37:48 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-kk6mr (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-kk6mr:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  5m48s  default-scheduler  Successfully assigned default/myapp-9877768b-9hkgh to ip-172-31-0-101.ec2.internal
+  Normal  Pulling    5m48s  kubelet            Pulling image "httpd"
+  Normal  Pulled     5m47s  kubelet            Successfully pulled image "httpd" in 196ms (196ms including waiting). Image size: 45242947 bytes.
+  Normal  Created    5m47s  kubelet            Container created
+  Normal  Started    5m47s  kubelet            Container started
+[root@ip-172-31-91-244 rolling]# kubectl apply -f rolling.yml
+deployment.apps/myapp configured
+deployment.apps/myapp configured
+[root@ip-172-31-91-244 rolling]# kubectl get pod
+NAME                   READY   STATUS    RESTARTS   AGE
+myapp-9877768b-4lvhq   1/1     Running   0          6m8s
+myapp-9877768b-5z6ln   1/1     Running   0          6m8s
+myapp-9877768b-8f4wv   1/1     Running   0          6m8s
+myapp-9877768b-9n62m   1/1     Running   0          6s
+myapp-9877768b-cm2s5   1/1     Running   0          6m5s
+myapp-9877768b-htk9m   1/1     Running   0          6s
+myapp-9877768b-kw8h7   1/1     Running   0          6m5s
+myapp-9877768b-mwjhr   1/1     Running   0          6m6s
+myapp-9877768b-pgd2g   1/1     Running   0          6s
+myapp-9877768b-q9rl7   1/1     Running   0          6s
+myapp-9877768b-qlzrz   1/1     Running   0          6s
+myapp-9877768b-rg462   1/1     Running   0          6m8s
+myapp-9877768b-rktck   1/1     Running   0          6m7s
+myapp-9877768b-wjlfs   1/1     Running   0          6m8s
+myapp-9877768b-x9lzb   1/1     Running   0          6m6s
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                   READY   STATUS    RESTARTS   AGE
+myapp-9877768b-4lvhq   1/1     Running   0          6m12s
+myapp-9877768b-5z6ln   1/1     Running   0          6m12s
+myapp-9877768b-8f4wv   1/1     Running   0          6m12s
+myapp-9877768b-9n62m   1/1     Running   0          10s
+myapp-9877768b-cm2s5   1/1     Running   0          6m9s
+myapp-9877768b-htk9m   1/1     Running   0          10s
+myapp-9877768b-kw8h7   1/1     Running   0          6m9s
+myapp-9877768b-mwjhr   1/1     Running   0          6m10s
+myapp-9877768b-pgd2g   1/1     Running   0          10s
+myapp-9877768b-q9rl7   1/1     Running   0          10s
+myapp-9877768b-qlzrz   1/1     Running   0          10s
+myapp-9877768b-rg462   1/1     Running   0          6m12s
+myapp-9877768b-rktck   1/1     Running   0          6m11s
+myapp-9877768b-wjlfs   1/1     Running   0          6m12s
+myapp-9877768b-x9lzb   1/1     Running   0          6m10s
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                   READY   STATUS    RESTARTS   AGE
+myapp-9877768b-4lvhq   1/1     Running   0          6m18s
+myapp-9877768b-5z6ln   1/1     Running   0          6m18s
+myapp-9877768b-8f4wv   1/1     Running   0          6m18s
+myapp-9877768b-9n62m   1/1     Running   0          16s
+myapp-9877768b-cm2s5   1/1     Running   0          6m15s
+myapp-9877768b-htk9m   1/1     Running   0          16s
+myapp-9877768b-kw8h7   1/1     Running   0          6m15s
+myapp-9877768b-mwjhr   1/1     Running   0          6m16s
+myapp-9877768b-pgd2g   1/1     Running   0          16s
+myapp-9877768b-q9rl7   1/1     Running   0          16s
+myapp-9877768b-qlzrz   1/1     Running   0          16s
+myapp-9877768b-rg462   1/1     Running   0          6m18s
+myapp-9877768b-rktck   1/1     Running   0          6m17s
+myapp-9877768b-wjlfs   1/1     Running   0          6m18s
+myapp-9877768b-x9lzb   1/1     Running   0          6m16s
+[root@ip-172-31-91-244 rolling]# kubectl describe pods myapp-9877768b-4lvhq
+Name:         myapp-9877768b-4lvhq
+Namespace:    default
+Priority:     0
+Node:         ip-172-31-0-101.ec2.internal/172.31.0.101
+Start Time:   Fri, 13 Mar 2026 07:37:47 +0000
+Labels:       app=myapp
+              pod-template-hash=9877768b
+              topology.kubernetes.io/region=us-east-1
+              topology.kubernetes.io/zone=us-east-1a
+Annotations:  <none>
+Status:       Running
+IP:           172.31.4.58
+IPs:
+  IP:           172.31.4.58
+Controlled By:  ReplicaSet/myapp-9877768b
+Containers:
+  myapp:
+    Container ID:   containerd://a1a68c384a9cd9695d6c9005cf9b43e9131a83470f700b1ad47b748928e18c06
+    Image:          httpd
+    Image ID:       docker.io/library/httpd@sha256:96b1e8f69ee3adde956e819f7a7c3e706edef7ad88a26a491734015e5c595333
+    Port:           8181/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 13 Mar 2026 07:37:48 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-xlcr7 (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-xlcr7:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  6m51s  default-scheduler  Successfully assigned default/myapp-9877768b-4lvhq to ip-172-31-0-101.ec2.internal
+  Normal  Pulling    6m50s  kubelet            Pulling image "httpd"
+  Normal  Pulled     6m50s  kubelet            Successfully pulled image "httpd" in 240ms (240ms including waiting). Image size: 45242947 bytes.
+  Normal  Created    6m50s  kubelet            Container created
+  Normal  Started    6m50s  kubelet            Container started
+[root@ip-172-31-91-244 rolling]# ching images name old image plus new image updated this concept
+-bash: ching: command not found
+[root@ip-172-31-91-244 rolling]# cat >>rolling.yml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 60%
+      maxSurge: 60%
+  replicas: 15
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: nginx
+          ports:
+            - name: http
+              containerPort: 8181
+
+^C
+[root@ip-172-31-91-244 rolling]# kubectl apply -f rolling.yml
+deployment.apps/myapp configured
+deployment.apps/myapp configured
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+myapp-6d4c4477c8-5pjgr   1/1     Running   0          5s
+myapp-6d4c4477c8-6whrt   1/1     Running   0          6s
+myapp-6d4c4477c8-bqlvc   1/1     Running   0          5s
+myapp-6d4c4477c8-dtj4g   1/1     Running   0          5s
+myapp-6d4c4477c8-f78f4   1/1     Running   0          5s
+myapp-6d4c4477c8-hl4v4   1/1     Running   0          5s
+myapp-6d4c4477c8-hmtd7   1/1     Running   0          6s
+myapp-6d4c4477c8-kkvtm   1/1     Running   0          5s
+myapp-6d4c4477c8-l9tkf   1/1     Running   0          5s
+myapp-6d4c4477c8-ljcmn   1/1     Running   0          5s
+myapp-6d4c4477c8-n5v4k   1/1     Running   0          6s
+myapp-6d4c4477c8-phvvz   1/1     Running   0          5s
+myapp-6d4c4477c8-pmbrq   1/1     Running   0          5s
+myapp-6d4c4477c8-q8s7t   1/1     Running   0          5s
+myapp-6d4c4477c8-vxcsq   1/1     Running   0          5s
+[root@ip-172-31-91-244 rolling]# kubectl describe pods myapp-6d4c4477c8-5pjgr
+Name:         myapp-6d4c4477c8-5pjgr
+Namespace:    default
+Priority:     0
+Node:         ip-172-31-0-101.ec2.internal/172.31.0.101
+Start Time:   Fri, 13 Mar 2026 07:45:55 +0000
+Labels:       app=myapp
+              pod-template-hash=6d4c4477c8
+              topology.kubernetes.io/region=us-east-1
+              topology.kubernetes.io/zone=us-east-1a
+Annotations:  <none>
+Status:       Running
+IP:           172.31.10.177
+IPs:
+  IP:           172.31.10.177
+Controlled By:  ReplicaSet/myapp-6d4c4477c8
+Containers:
+  myapp:
+    Container ID:   containerd://784ce2703efc3a55d62efded04e631b5c3df99cad6f1d3c15a1fc59d5fe2cd32
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:bc45d248c4e1d1709321de61566eb2b64d4f0e32765239d66573666be7f13349
+    Port:           8181/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 13 Mar 2026 07:45:56 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-vj4pv (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-vj4pv:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  28s   default-scheduler  Successfully assigned default/myapp-6d4c4477c8-5pjgr to ip-172-31-0-101.ec2.internal
+  Normal  Pulling    27s   kubelet            Pulling image "nginx"
+  Normal  Pulled     27s   kubelet            Successfully pulled image "nginx" in 371ms (371ms including waiting). Image size: 62960551 bytes.
+  Normal  Created    27s   kubelet            Container created
+  Normal  Started    27s   kubelet            Container started
+[root@ip-172-31-91-244 rolling]# kubectl delete -f .
+deployment.apps "myapp" deleted
+Error from server (NotFound): error when deleting "rolling.yml": deployments.apps "myapp" not found
+[root@ip-172-31-91-244 rolling]# kubectl get pods
+No resources found in default namespace.
+[root@ip-172-31-91-244 rolling]# ls
+rolling.yml
+[root@ip-172-31-91-244 rolling]# cd ..
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# ls
+bluegreen  canary  deploy.yml  recreate  recreate.yml  rolling
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# cd bluegreen/
+[root@ip-172-31-91-244 bluegreen]# ls
+blue-green-deployment-bluereplica-v2.yaml  blue-green-deployment-greenreplica-v1.yaml  blue-green-service.yaml
+[root@ip-172-31-91-244 bluegreen]# check ony one svc is redirect into blue or gree pods this is important point noot
+-bash: check: command not found
+[root@ip-172-31-91-244 bluegreen]# cat >>blue-green-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    app: myapp
+    replica: blue  #enables blue or green deployment to give access service here blue is nginx and green is httpd for our understanding
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: http
+^C
+[root@ip-172-31-91-244 bluegreen]# ls
+blue-green-deployment-bluereplica-v2.yaml  blue-green-deployment-greenreplica-v1.yaml  blue-green-service.yaml
+[root@ip-172-31-91-244 bluegreen]# kubectl apply -f blue-green-deployment-bluereplica-v2.yaml
+deployment.apps/blue-myapp created
+[root@ip-172-31-91-244 bluegreen]# kubectl get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+blue-myapp-69cddd9f4b-jlrbr   1/1     Running   0          16s
+blue-myapp-69cddd9f4b-nw4wm   1/1     Running   0          16s
+[root@ip-172-31-91-244 bluegreen]# kubectl describe  pods blue-myapp-69cddd9f4b-jlrbr
+Name:         blue-myapp-69cddd9f4b-jlrbr
+Namespace:    default
+Priority:     0
+Node:         ip-172-31-0-101.ec2.internal/172.31.0.101
+Start Time:   Fri, 13 Mar 2026 08:08:56 +0000
+Labels:       app=myapp
+              pod-template-hash=69cddd9f4b
+              replica=blue
+              topology.kubernetes.io/region=us-east-1
+              topology.kubernetes.io/zone=us-east-1a
+Annotations:  <none>
+Status:       Running
+IP:           172.31.10.110
+IPs:
+  IP:           172.31.10.110
+Controlled By:  ReplicaSet/blue-myapp-69cddd9f4b
+Containers:
+  myapp:
+    Container ID:   containerd://4e4e7e18ee87ed9bbc6489fcea928c3aa473f96ac3f5a35bba2757b022fe49ad
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:bc45d248c4e1d1709321de61566eb2b64d4f0e32765239d66573666be7f13349
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Fri, 13 Mar 2026 08:08:57 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-9tn2r (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-9tn2r:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  35s   default-scheduler  Successfully assigned default/blue-myapp-69cddd9f4b-jlrbr to ip-172-31-0-101.ec2.internal
+  Normal  Pulling    35s   kubelet            Pulling image "nginx"
+  Normal  Pulled     34s   kubelet            Successfully pulled image "nginx" in 119ms (119ms including waiting). Image size: 62960551 bytes.
+  Normal  Created    34s   kubelet            Container created
+  Normal  Started    34s   kubelet            Container started
+[root@ip-172-31-91-244 bluegreen]# check images name
+-bash: check: command not found
+[root@ip-172-31-91-244 bluegreen]# ls
+blue-green-deployment-bluereplica-v2.yaml  blue-green-deployment-greenreplica-v1.yaml  blue-green-service.yaml
+[root@ip-172-31-91-244 bluegreen]# kubectl apply -f blue-green-service.yaml
+service/myapp created
+[root@ip-172-31-91-244 bluegreen]# kubectl get svc
+NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP   10.100.0.1      <none>        443/TCP        3h3m
+myapp        NodePort    10.100.151.75   <none>        80:32319/TCP   9s
+[root@ip-172-31-91-244 bluegreen]# go to node ec2 sg ching all trific edit this is important#####################################################################
+-bash: go: command not found
+[root@ip-172-31-91-244 bluegreen]# kubectl describe svc myapp
+Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+Name:                     myapp
+Namespace:                default
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=myapp,replica=blue
+Type:                     NodePort
+IP:                       10.100.151.75
+Port:                     <unset>  80/TCP
+TargetPort:               http/TCP
+NodePort:                 <unset>  32319/TCP
+Endpoints:                172.31.10.110:80,172.31.80.82:80
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+[root@ip-172-31-91-244 bluegreen]#
+Network error: Connection reset by peer
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Session stopped
+    - Press <Return> to exit tab
+    - Press R to restart session
+    - Press S to save terminal output to file
+Authenticating with public key "Imported-Openssh-Key"
+    +----------------------------------------------------------------------+
+    ¦                 • MobaXterm Personal Edition v25.2 •                 ¦
+    ¦               (SSH client, X server and network tools)               ¦
+    ¦                                                                      ¦
+    ¦ ? SSH session to ec2-user@3.83.101.124                               ¦
+    ¦   • Direct SSH      :  ?                                             ¦
+    ¦   • SSH compression :  ?                                             ¦
+    ¦   • SSH-browser     :  ?                                             ¦
+    ¦   • X11-forwarding  :  ?  (disabled or not supported by server)      ¦
+    ¦                                                                      ¦
+    ¦ ? For more info, ctrl+click on help or visit our website.            ¦
+    +----------------------------------------------------------------------+
+
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
+   ~~       V~' '->
+    ~~~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+Last login: Fri Mar 13 06:58:18 2026 from 49.43.224.190
+[ec2-user@ip-172-31-91-244 ~]$ sudo su -
+Last login: Fri Mar 13 06:58:29 UTC 2026 on pts/1
+[root@ip-172-31-91-244 ~]# now check node ec2 public ip 32291 port check in chrom ############################################################################33
+-bash: now: command not found
+[root@ip-172-31-91-244 ~]# ls
+Kubernetes-main
+[root@ip-172-31-91-244 ~]# cd Kubernetes-main
+[root@ip-172-31-91-244 Kubernetes-main]# ls
+day-1-installation         day-15-config-secrets        day-4-horizonatl-scaling   day-7-deployment-updates-recreate-rolling-bluegree-canary
+day-10-volumes             day-15-probes                day-4-namesapce            day-8-schedules
+day-12-argocd              day-18-pythonflask           day-5-ingress              day-9-helm
+day-13-statefull-headless  day-2-workernode-components  day-6-privateimage-deploy  daya-11-monitoring
+day-14-rback               day-3-service                day-7-Cluster-autoscaleer
+[root@ip-172-31-91-244 Kubernetes-main]# cd day-7-deployment-updates-recreate-rolling-bluegree-canary/
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# ls
+bluegreen  canary  deploy.yml  recreate  recreate.yml  rolling
+[root@ip-172-31-91-244 day-7-deployment-updates-recreate-rolling-bluegree-canary]# cd bluegreen/
+[root@ip-172-31-91-244 bluegreen]# ls
+blue-green-deployment-bluereplica-v2.yaml  blue-green-deployment-greenreplica-v1.yaml  blue-green-service.yaml
+[root@ip-172-31-91-244 bluegreen]# kubectl get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+blue-myapp-69cddd9f4b-jlrbr   1/1     Running   0          59m
+blue-myapp-69cddd9f4b-nw4wm   1/1     Running   0          59m
+[root@ip-172-31-91-244 bluegreen]# kubectl apply -f blue-green-deployment-greenreplica-v1.yaml
+deployment.apps/green-myapp created
+[root@ip-172-31-91-244 bluegreen]# kubectl get pods
+NAME                           READY   STATUS              RESTARTS   AGE
+blue-myapp-69cddd9f4b-jlrbr    1/1     Running             0          59m
+blue-myapp-69cddd9f4b-nw4wm    1/1     Running             0          59m
+green-myapp-7b74d848c9-h4b97   0/1     ContainerCreating   0          21s
+green-myapp-7b74d848c9-r6w9b   0/1     ContainerCreating   0          21s
+[root@ip-172-31-91-244 bluegreen]# kubectl get pods
+NAME                           READY   STATUS             RESTARTS   AGE
+blue-myapp-69cddd9f4b-jlrbr    1/1     Running            0          60m
+blue-myapp-69cddd9f4b-nw4wm    1/1     Running            0          60m
+green-myapp-7b74d848c9-h4b97   0/1     ImagePullBackOff   0          56s
+green-myapp-7b74d848c9-r6w9b   0/1     ImagePullBackOff   0          56s
+[root@ip-172-31-91-244 bluegreen]# kubectl get pods
+NAME                           READY   STATUS             RESTARTS   AGE
+blue-myapp-69cddd9f4b-jlrbr    1/1     Running            0          62m
+blue-myapp-69cddd9f4b-nw4wm    1/1     Running            0          62m
+green-myapp-7b74d848c9-h4b97   0/1     ErrImagePull       0          2m33s
+green-myapp-7b74d848c9-r6w9b   0/1     ImagePullBackOff   0          2m33s
+[root@ip-172-31-91-244 bluegreen]# kubectl get pods
+NAME                           READY   STATUS             RESTARTS   AGE
+blue-myapp-69cddd9f4b-jlrbr    1/1     Running            0          62m
+blue-myapp-69cddd9f4b-nw4wm    1/1     Running            0          62m
+green-myapp-7b74d848c9-h4b97   0/1     ImagePullBackOff   0          3m4s
+green-myapp-7b74d848c9-r6w9b   0/1     ImagePullBackOff   0          3m4s
+[root@ip-172-31-91-244 bluegreen]# exit
+logout
+[ec2-user@ip-172-31-91-244 ~]$ sudo su -
+Last login: Fri Mar 13 09:03:38 UTC 2026 on pts/1
+[root@ip-172-31-91-244 ~]# kubectl delete -f .
+error: error reading [.]: recognized file extensions are [.json .yaml .yml]
+[root@ip-172-31-91-244 ~]# exit
+logout
+[ec2-user@ip-172-31-91-244 ~]$ exit
+logout
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
