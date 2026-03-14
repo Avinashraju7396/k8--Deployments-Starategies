@@ -6,7 +6,7 @@
 3)Blue-Green Deployment Strategy-----        2 deploy 2 different lables---------------resources are more  user 100% impack old version delete new vwesion update that time users will 
 impack application downtime always this is droback 
 4)Canary Strategy-------        2 deploy 2 same lables ------------------>smowly ramp up and ramp down no users impack  ramp down no response no down time impack only 10%(realtime 100%use)
-
+only edit v1:3  , v2:2   edit only replica number (in realtime 100%use)as per user no impack 
 ----------------------------------------------------------------------------------------
 
 1)Recreate Strategy:-
