@@ -102,6 +102,28 @@ Green Becomes Production
 
 4)Canary Strategy
 
+Start
+  ↓
+Develop New Change / Feature
+  ↓
+Select Small Group of Users (5–10%)
+  ↓
+Deploy the Change to the Small Group
+  ↓
+Monitor System Performance & User Feedback
+  ↓
+Are there any issues?
+   ↓            ↓
+  YES           NO
+   ↓             ↓
+Rollback /      Gradually Release
+Fix the Issue   to More Users
+   ↓             ↓
+Improve &       Deploy to All Users
+Retest
+   ↓             ↓
+  End           End
+
 
 *)The Canary strategy releases a new version of the application to a small number of users first, while most users still use the old version.
 
